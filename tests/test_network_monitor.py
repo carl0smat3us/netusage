@@ -11,18 +11,17 @@ from netusage import (
 
 def test_basic_monitoring():
     """Test basic start and end monitoring"""
-    pid = os.getpid()
-    start_monitoring(pid)
+    start_monitoring()
 
     try:
         response = urllib.request.urlopen("https://httpbin.org/json", timeout=10)
         data = response.read()
         assert len(data) > 0
     except Exception:
-        end_monitoring(pid)
+        end_monitoring()
         return
 
-    results = end_monitoring(pid)
+    results = end_monitoring()
 
     assert "bytes_sent" in results
     assert "bytes_recv" in results
@@ -35,16 +34,15 @@ def test_basic_monitoring():
 
 def test_result_types():
     """Test that results have correct types"""
-    pid = os.getpid()
-    start_monitoring(pid)
+    start_monitoring()
 
     try:
         urllib.request.urlopen("https://httpbin.org/uuid", timeout=10).read()
     except Exception:
-        end_monitoring(pid)
+        end_monitoring()
         return
 
-    results = end_monitoring(pid)
+    results = end_monitoring()
 
     assert isinstance(results["bytes_sent"], int)
     assert isinstance(results["bytes_recv"], int)
@@ -57,16 +55,15 @@ def test_result_types():
 
 def test_positive_values():
     """Test that network activity produces positive values"""
-    pid = os.getpid()
-    start_monitoring(pid)
+    start_monitoring()
 
     try:
         urllib.request.urlopen("https://httpbin.org/json", timeout=10).read()
     except Exception:
-        end_monitoring(pid)
+        end_monitoring()
         return
 
-    results = end_monitoring(pid)
+    results = end_monitoring()
 
     assert results["bytes_sent"] > 0
     assert results["bytes_recv"] > 0
@@ -77,8 +74,7 @@ def test_positive_values():
 
 def test_multiple_requests():
     """Test monitoring multiple network requests"""
-    pid = os.getpid()
-    start_monitoring(pid)
+    start_monitoring()
 
     urls = [
         "https://httpbin.org/uuid",
@@ -89,26 +85,25 @@ def test_multiple_requests():
         for url in urls:
             urllib.request.urlopen(url, timeout=10).read()
     except Exception:
-        end_monitoring(pid)
+        end_monitoring()
         return
 
-    results = end_monitoring(pid)
+    results = end_monitoring()
 
     assert results["total_kb"] > 0
 
 
 def test_kb_conversion():
     """Test that KB values are correctly calculated from bytes"""
-    pid = os.getpid()
-    start_monitoring(pid)
+    start_monitoring()
 
     try:
         urllib.request.urlopen("https://httpbin.org/json", timeout=10).read()
     except Exception:
-        end_monitoring(pid)
+        end_monitoring()
         return
 
-    results = end_monitoring(pid)
+    results = end_monitoring()
 
     expected_sent_kb = round(results["bytes_sent"] / 1024, 2)
     expected_recv_kb = round(results["bytes_recv"] / 1024, 2)
@@ -119,18 +114,17 @@ def test_kb_conversion():
 
 def test_duration_tracking():
     """Test that duration is properly tracked"""
-    pid = os.getpid()
-    start_monitoring(pid)
+    start_monitoring()
 
     time.sleep(0.5)
 
     try:
         urllib.request.urlopen("https://httpbin.org/delay/1", timeout=10).read()
     except Exception:
-        end_monitoring(pid)
+        end_monitoring()
         return
 
-    results = end_monitoring(pid)
+    results = end_monitoring()
 
     assert results["duration"] >= 1.5
 
@@ -162,7 +156,7 @@ def test_no_network_activity():
 
     time.sleep(0.1)
 
-    results = end_monitoring(pid)
+    results = end_monitoring()
 
     assert isinstance(results["bytes_sent"], int)
     assert isinstance(results["bytes_recv"], int)
@@ -172,23 +166,21 @@ def test_no_network_activity():
 
 def test_sequential_monitoring():
     """Test that we can monitor multiple times sequentially"""
-    pid = os.getpid()
-
-    start_monitoring(pid)
+    start_monitoring()
     try:
         urllib.request.urlopen("https://httpbin.org/uuid", timeout=10).read()
     except Exception:
-        end_monitoring(pid)
+        end_monitoring()
         return
-    results1 = end_monitoring(pid)
+    results1 = end_monitoring()
 
-    start_monitoring(pid)
+    start_monitoring()
     try:
         urllib.request.urlopen("https://httpbin.org/json", timeout=10).read()
     except Exception:
-        end_monitoring(pid)
+        end_monitoring()
         return
-    results2 = end_monitoring(pid)
+    results2 = end_monitoring()
 
     assert results1["total_kb"] > 0
     assert results2["total_kb"] > 0
@@ -196,8 +188,7 @@ def test_sequential_monitoring():
 
 def test_large_download():
     """Test monitoring a larger download"""
-    pid = os.getpid()
-    start_monitoring(pid)
+    start_monitoring()
 
     try:
         data = urllib.request.urlopen(
@@ -205,10 +196,10 @@ def test_large_download():
         ).read()
         assert len(data) == 25000
     except Exception:
-        end_monitoring(pid)
+        end_monitoring()
         return
 
-    results = end_monitoring(pid)
+    results = end_monitoring()
 
     assert results["recv_kb"] > 24
 
@@ -223,12 +214,11 @@ def test_invalid_pid():
 
 def test_negative_values_impossible():
     """Test that we never get negative values"""
-    pid = os.getpid()
-    start_monitoring(pid)
+    start_monitoring()
 
     time.sleep(0.1)
 
-    results = end_monitoring(pid)
+    results = end_monitoring()
 
     assert results["bytes_sent"] >= 0
     assert results["bytes_recv"] >= 0

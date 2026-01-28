@@ -1,3 +1,4 @@
+import os
 import time
 from typing import Dict
 
@@ -35,7 +36,7 @@ def get_network_connections_count(pid: int) -> int:
         return 0
 
 
-def start_monitoring(pid: int) -> None:
+def start_monitoring(pid=os.getpid()) -> None:
     """
     Start monitoring network activity for a process.
 
@@ -54,7 +55,7 @@ def start_monitoring(pid: int) -> None:
     }
 
 
-def end_monitoring(pid: int) -> Dict:
+def end_monitoring(pid=os.getpid()) -> Dict:
     """
     End monitoring and return results.
 
